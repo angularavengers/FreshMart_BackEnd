@@ -1,0 +1,9 @@
+{
+  "development": {
+      "dbconfig": "mongodb+srv://admin_freshmart:Dada8921@@cluster0.t7opn.mongodb.net/freshmart?retryWrites=true&w=majority"
+      
+  }, 
+  "production": {
+      "dbconfig": "Mongo URL PROD"
+  }
+}
