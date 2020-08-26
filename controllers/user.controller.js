@@ -1,5 +1,8 @@
 const UserModel = require('../db/db-model/user.model');
-    // Find All Users
+const axios = require('axios');
+
+
+// Find All Users
     findAll = (req, res) => {
         UserModel.users.find()
             .then(users => {
@@ -23,7 +26,8 @@ const UserModel = require('../db/db-model/user.model');
         }  
      })      
     const UserModelForSignUp = new UserModel.users({
-        name: req.body.name,
+        fName: req.body.fName,
+        lName: req.body.lName,
         phoneNumber: req.body.phoneNumber,
         email: req.body.email,
         roles: req.body.roles,
@@ -35,8 +39,8 @@ const UserModel = require('../db/db-model/user.model');
 
     // Save Note in the database
     UserModelForSignUp.save()
-        .then(data => {
-            res.send(data);
+        .then(user => {
+            res.send(user);
         }).catch(err => {
             res.status(500).send({
                 message: err.message || "Some error occurred while creating the User."
@@ -50,7 +54,28 @@ loginUser = (req,res)=>{
     }    
     UserModel.users.findOne({phoneNumber:req.body.phoneNumber}).then((user)=>{
         if (user)  {
-            return res.status(200).send({user});
+            //return res.status(200).send({user});
+            const headers = {
+                "content-type": "application/x-www-form-urlencoded",
+                "cache-control": "no-cache",
+                "authorization": "y9F4vRPqYG0MJj7w3koe8mgLH5hQuUOrztfXDn6dVli1ECaWBco5I9TcMipw0xZ6ueY48navWKfVDhqr"
+              }
+            axios.post('https://www.fast2sms.com/dev/bulk', {
+                "sender_id": "IMPSMS",
+                "language": "english",
+                "route": "qt",
+                "numbers": "9573603051",
+                "message": "34794",
+                "variables": "{AA}",
+                "variables_values": "12345"
+              },{headers:headers})
+              .then(function (response) {
+                console.log(response);
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+            
             }else{
             return  res.status(200).send({ isUserRegisted: false})
         }
@@ -87,6 +112,18 @@ verifyPasswordUser=(req,res)=>{
     });
 }
 
+updateUserProfile=(req,res)=>{
+    userModel.findOneAndUpdate(
+        //     { _id: "5c4c6d0b9f7534365ca53f53"}, 
+        //     { $push: { surveyDetails: {
+        //                     suerveyId:00002,
+        //                     surveyQuestion:[
+        //                         {question:"Question changed",options:["HTML1","Javascript2","Angular2","Java"]}
+        //                 ]
+        //             }
+        //         } }
+}
+
 
 module.exports = {
     findAllUser: findAll,
@@ -95,70 +132,4 @@ module.exports = {
     verifyUser: verifyPasswordUser
 }
 
-
-// sendAuthyTokenForLogin = (req, res) => {
-//     // Validate request
-//     if (!req.body.phone) {
-//         return res.status(400).send({
-//             message: { test: 'aaa' }
-//         });
-//     }
-
-//     User.findOne({ phone: req.body.phone }).then(user => {
-//         if (user) {
-//             smsClient(req, res)
-//                 .then(function (response) {
-//                     return res.status(400).send({
-//                         message: { response }
-//                     });
-//                 })
-//                 .catch(function (error) {
-//                     return res.status(400).send({
-//                         message: { error }
-//                     });
-//                 })
-//         } else {
-//             token = authenticator.generateSecret()
-//             return res.status(200).send({
-//                 message: { token}
-//             });
-//             // /* send OTP code will go here*/
-//             // smsClient(req, res)
-//             //     .then(function (response) {
-//             //         secret = 4545;
-//             //         token = authenticator.generate(secret);
-//             //         return res.status(400).send({
-//             //             message: { response }
-//             //         });
-//             //     })
-//             //     .catch(function (error) {
-//             //         return res.status(400).send({
-//             //             message: { error }
-//             //         });
-//             //     })
-//         }
-//     })
-// };
-
-// VerifyTokenForLogin = (req, res) => {
-//     // Validate request
-//     if (!req.body.token) {
-//         return res.status(400).send({
-//             message: { error: 'No token provided' }
-//         });
-//     };
-//     try {
-//         clientToken = req.body.token;
-//         const isValid = authenticator.totp.verify({token:clientToken}, secret);
-//         console.log("token is " + isValid);
-//         return res.status(200).send({
-//             message: {isValid, secret, authenticator,clientToken}
-//         })
-//     } catch (err) {
-//         console.log("token is 1234" );
-//         return res.status(200).send({
-//             message: { isVerified: 'false',err }
-//         })
-//     }
-// };
 
