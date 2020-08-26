@@ -1,9 +1,14 @@
 {
   "development": {
-      "dbconfig": "mongodb+srv://admin_freshmart:Dada8921@@cluster0.t7opn.mongodb.net/freshmart?retryWrites=true&w=majority"
-      
+      "dbconfig": "mongodb+srv://admin_freshmart:Dada8921@@cluster0.t7opn.mongodb.net/freshmart?retryWrites=true&w=majority",
+      "OTPGateWay":{
+        "clientURL": "https://www.fast2sms.com/dev/bulk",
+        "authToken":"y9F4vRPqYG0MJj7w3koe8mgLH5hQuUOrztfXDn6dVli1ECaWBco5I9TcMipw0xZ6ueY48navWKfVDhqr",
+        "templateId": "34813"
+      }
   }, 
   "production": {
-      "dbconfig": "Mongo URL PROD"
+      "dbconfig": "Mongo URL PROD",
+      "OTPGateWay":""
   }
 }

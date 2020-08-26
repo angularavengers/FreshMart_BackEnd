@@ -1,4 +1,7 @@
 const UserModel = require('../db/db-model/user.model');
+const unirest = require('unirest');
+var common = require('../common');
+var config = common.config();
 // Find All Users
 findAll = (req, res) => {
     UserModel.users.find()
@@ -13,7 +16,7 @@ findAll = (req, res) => {
 
 // Creat New User
 createUser = (req, res) => {
-    validateField(res.body.phoneNumber);
+    validateField(req.body.phoneNumber);
 
     UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
         if (user) {
@@ -44,19 +47,29 @@ createUser = (req, res) => {
 };
 
 loginUser = (req, res) => {
-    validateField(res.body.phoneNumber);
+    validateField(req.body.phoneNumber);
     UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
         if (user) {
             return res.status(200).send({ user });
         } else {
-            return res.status(500).send({
-                isUserRegisted: false,
-                errorMessage: 'Mobile number you entered is not registered. Please sign up.'
+            /* Token will expire in 1 min */
+            let token = getOtpForUser(); 
+            let tokenModel = new UserModel.toeken({ _userId: req.body.phoneNumber, 
+            token: token });
+            tokenModel.save().then((tokenId)=>{
+                getOneTimeOTP(tokenId._userId,tokenId.token).then((response) => {
+                    res.status(200).send({response, isUserRegisted: false});
+                 }).catch((error)=>{
+                    res.status(500).send({error:`Token is already sent to you if you don't got please try with resend OTP.`})
+                  })
+            }).catch((error)=>{
+                /* If already have OTP sent to record will not send other record. */
+                return res.status(500).send({error:'Unable to send OTP please try again.' + error})
             })
         }
     }).catch((error) => {
         return res.status(500).send({
-            message: { error }
+            message: { error:'Unable to login please try again.' + error,isUserRegisted: false }
         });
     })
 };
@@ -93,95 +106,117 @@ validateField=(fieldName)=>{
     }
 }
 
-updateUserProfile=(req,res)=>{
+/* ToDo for testing - Sourabh  */
+getOneTimeOTP=(phoneNumber,token)=>{
+  return  unirest
+  .post(config.OTPGateWay.clientURL)
+  .headers({'authorization': config.OTPGateWay.authToken})
+  .send({ 
+    "sender_id": "IMPSMS",
+    "language": "english",
+    "route": "qt",
+    "numbers": phoneNumber,
+    "message": config.OTPGateWay.templateId,
+    "variables": "{AA}",
+    "variables_values": token
+   })
+}
+getOtpForUser=()=>{
+    // Function to generate OTP 
+    /* we can also changes this with alphanumeric or 5-6 digit code -Sourabh */
+    var digits = '0123456789'; 
+    let OTP = ''; 
+    for (let i = 0; i < 4; i++ ) { 
+        OTP += digits[Math.floor(Math.random() * 10)]; 
+    } 
+    return OTP; 
+}
+
+//VerifyOTP...
+verifyPasswordUser = (req, res) => {
+    var newUser = {};
+    newUser.phoneNumber = req.body.phoneNumber;
+    newUser.password = req.body.password;
+    UserModel.users.findOne({ phoneNumber: newUser.phoneNumber })
+        .then(user => {
+            if (!user) {
+                res.send({ isUserExist: false });
+            } else {
+                if (user.password == newUser.password) {
+                    res.send({ isUserExist: true, authenticated: true });
+                } else {
+                    res.status(500).send({
+                        isUserExist: true,
+                        authenticated: false,
+                        errorMessage: 'Password you entered is incorrect. Please try again.'
+                    });
+                }
+            }
+        })
+        .catch(err => {
+            console.log("Error is ", err.message);
+            res.send({ error: err });
+        });
+}
+
+
+
+updateUserAdress=(req,res)=>{
     validateField(req.body.phoneNumber);
-    userModel.findOneAndUpdate(
+    UserModel.users.findOneAndUpdate(
             { phoneNumber: req.body.phoneNumber}, 
-            { $push: { adressDetails: {
+            { $push: {  adress:{
                          AdressLine1:"sourabh",
-                         Adess_Line2 : "Pallavi Nagar",
+                         Adess_Line2 : "Nehru Nagar",
                          LandMark:"Oyo hotel bhopal",
                          City:"Bhopal",
                          State:"Madhya Predesh",
-                         PinCode: 462016,
-                         isdefault: true  
+                         PinCode: 462016  
                     }
+                },
+            },
+            {new: true}  
+            ).then((updatedrecord)=>{
+                if(req.body.isdefault){
+                    var setDefaultAdressForUser = new UserModel.usersAdress
+                    ({ _userId: updatedrecord._id, defaultAdressId:updatedrecord.adress[updatedrecord.adress.length-1]._id});
+                     setDefaultAdressForUser.save()
+                     .then((defaultAdress)=>{
+                              return res.send({updatedrecord: updatedrecord, defaultAdressId: defaultAdress });
+                      }).catch((err)=>{
+                        return res.status(500).send({err});
+                      });
+                }else{
+                    return res.send({ updatedrecord });
                 }
+
+            }).catch((err)=>{
+              return res.status(500).send({err});
             })
 };
+
+/* Todo -- Sourabh Will update this when we have UI */
+// updateUserProfile=(req,res)=>{
+//     validateField(req.body.phoneNumber);
+//     updatedUserProfile ={};
+//     if(req.body.)
+//     UserModel.users.findOneAndUpdate(
+//             { phoneNumber: req.body.phoneNumber}, 
+//             {$set:},
+//             {new: true}  
+//             ).then((updatedProfile)=>{
+//                 return res.status(200).send({updatedProfile});      
+//             }).catch((err)=>{
+//               return res.status(500).send({err});
+//             })
+// };  
 
 
 module.exports = {
     findAllUser: findAll,
     login: loginUser,
     signUp: createUser,
-    verifyUser: verifyPasswordUser
+    verifyUser: verifyPasswordUser,
+    edituserAdress:updateUserAdress,
+    //edituserProfile:updateUserProfle 
 }
-
-
-// sendAuthyTokenForLogin = (req, res) => {
-//     // Validate request
-//     if (!req.body.phone) {
-//         return res.status(400).send({
-//             message: { test: 'aaa' }
-//         });
-//     }
-
-//     User.findOne({ phone: req.body.phone }).then(user => {
-//         if (user) {
-//             smsClient(req, res)
-//                 .then(function (response) {
-//                     return res.status(400).send({
-//                         message: { response }
-//                     });
-//                 })
-//                 .catch(function (error) {
-//                     return res.status(400).send({
-//                         message: { error }
-//                     });
-//                 })
-//         } else {
-//             token = authenticator.generateSecret()
-//             return res.status(200).send({
-//                 message: { token}
-//             });
-//             // /* send OTP code will go here*/
-//             // smsClient(req, res)
-//             //     .then(function (response) {
-//             //         secret = 4545;
-//             //         token = authenticator.generate(secret);
-//             //         return res.status(400).send({
-//             //             message: { response }
-//             //         });
-//             //     })
-//             //     .catch(function (error) {
-//             //         return res.status(400).send({
-//             //             message: { error }
-//             //         });
-//             //     })
-//         }
-//     })
-// };
-
-// VerifyTokenForLogin = (req, res) => {
-//     // Validate request
-//     if (!req.body.token) {
-//         return res.status(400).send({
-//             message: { error: 'No token provided' }
-//         });
-//     };
-//     try {
-//         clientToken = req.body.token;
-//         const isValid = authenticator.totp.verify({token:clientToken}, secret);
-//         console.log("token is " + isValid);
-//         return res.status(200).send({
-//             message: {isValid, secret, authenticator,clientToken}
-//         })
-//     } catch (err) {
-//         console.log("token is 1234" );
-//         return res.status(200).send({
-//             message: { isVerified: 'false',err }
-//         })
-//     }
-// };
-

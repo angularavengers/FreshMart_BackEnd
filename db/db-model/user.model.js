@@ -10,7 +10,6 @@ var UserSchema = new mongoose.Schema({
     roles: [{ type: 'String' }],
     isVerified: { type: Boolean, default: false },
     adress:[{
-      adressDetails:{
         AdressLine1:String ,
 		    Adess_Line2 : String,
 		    LandMark:String,
@@ -18,24 +17,31 @@ var UserSchema = new mongoose.Schema({
 		    State:String,
         PinCode:String ,
         isdefault:Boolean
-      }
      }],
     password: String,
     passwordResetToken: String,
     passwordResetExpires: Date
   })
+var UserAdress = new mongoose.Schema({
+  _userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'users' },
+  defaultAdressId: {type: mongoose.Schema.Types.ObjectId},
+});  
 
 const tokenSchema = new mongoose.Schema({
-    _userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'users' },
+    _userId: { type: String , required: true, unique: true,index: true
+    },
     token: { type: String, required: true },
-    createdAt: { type: Date, required: true, default: Date.now, expires: 43200 }
-});
+    createdAt: { type: Date, required: true, default: Date.now, expires: 60}
+},{strict: true});
 
 const UserSchemaT= mongoose.model('users',UserSchema);
 const tokenSchemaT= mongoose.model('tokens',tokenSchema);
+const UserAdressT= mongoose.model('userAdress',UserAdress);
 
 module.exports = {
    users: UserSchemaT,
-   toekns: tokenSchemaT
+   toeken: tokenSchemaT,
+   usersAdress: UserAdressT
 }
+
 
