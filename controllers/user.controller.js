@@ -1,7 +1,6 @@
 const UserModel = require('../db/db-model/user.model');
 // Find All Users
 findAll = (req, res) => {
-    console.log('hellooooooooooooooooooooooooooooooooooooooo');
     UserModel.users.find()
         .then(users => {
             res.send(users);
@@ -14,9 +13,7 @@ findAll = (req, res) => {
 
 // Creat New User
 createUser = (req, res) => {
-    if (!req.body.phoneNumber) {
-        return res.status(400).send({ error: "Phone Number required." })
-    }
+    validateField(res.body.phoneNumber);
 
     UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
         if (user) {
@@ -47,9 +44,7 @@ createUser = (req, res) => {
 };
 
 loginUser = (req, res) => {
-    if (!req.body.phoneNumber) {
-        return res.status(400).send({ error: "Phone Number required." })
-    }
+    validateField(res.body.phoneNumber);
     UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
         if (user) {
             return res.status(200).send({ user });
@@ -67,13 +62,9 @@ loginUser = (req, res) => {
 };
 
 verifyPasswordUser = (req, res) => {
-    if (!req.body.phoneNumber) {
-        return res.status(400).send({ error: "Phone Number required." })
-    }
     var newUser = {};
     newUser.phoneNumber = req.body.phoneNumber;
     newUser.password = req.body.password;
-    console.log(newUser);
     UserModel.users.findOne({ phoneNumber: newUser.phoneNumber })
         .then(user => {
             if (!user) {
@@ -95,6 +86,29 @@ verifyPasswordUser = (req, res) => {
             res.send({ error: err });
         });
 }
+
+validateField=(fieldName)=>{
+    if (!fieldName) {
+        return res.status(400).send({ error: "Phone Number required." })
+    }
+}
+
+updateUserProfile=(req,res)=>{
+    validateField(req.body.phoneNumber);
+    userModel.findOneAndUpdate(
+            { phoneNumber: req.body.phoneNumber}, 
+            { $push: { adressDetails: {
+                         AdressLine1:"sourabh",
+                         Adess_Line2 : "Pallavi Nagar",
+                         LandMark:"Oyo hotel bhopal",
+                         City:"Bhopal",
+                         State:"Madhya Predesh",
+                         PinCode: 462016,
+                         isdefault: true  
+                    }
+                }
+            })
+};
 
 
 module.exports = {

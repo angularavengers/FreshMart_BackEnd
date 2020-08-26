@@ -9,6 +9,17 @@ var UserSchema = new mongoose.Schema({
     email: { type: String, unique: true,require:true},
     roles: [{ type: 'String' }],
     isVerified: { type: Boolean, default: false },
+    adress:[{
+      adressDetails:{
+        AdressLine1:String ,
+		    Adess_Line2 : String,
+		    LandMark:String,
+		    City:String,
+		    State:String,
+        PinCode:String ,
+        isdefault:Boolean
+      }
+     }],
     password: String,
     passwordResetToken: String,
     passwordResetExpires: Date
