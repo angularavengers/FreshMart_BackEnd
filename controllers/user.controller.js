@@ -1,29 +1,31 @@
 const UserModel = require('../db/db-model/user.model');
-    // Find All Users
-    findAll = (req, res) => {
-        UserModel.users.find()
-            .then(users => {
-                res.send(users);
-            }).catch(err => {
-                res.status(500).send({
-                    message: err.message || "Some error occurred while retrieving notes."
-                });
+// Find All Users
+findAll = (req, res) => {
+    console.log('hellooooooooooooooooooooooooooooooooooooooo');
+    UserModel.users.find()
+        .then(users => {
+            res.send(users);
+        }).catch(err => {
+            res.status(500).send({
+                message: err.message || "Some error occurred while retrieving notes."
             });
-    };
+        });
+};
 
 // Creat New User
- createUser = (req, res) => {
-    if (!req.body.phoneNumber){
-        return res.status(400).send({error:"Phone Number required."})
+createUser = (req, res) => {
+    if (!req.body.phoneNumber) {
+        return res.status(400).send({ error: "Phone Number required." })
     }
 
-    UserModel.users.findOne({phoneNumber:req.body.phoneNumber}).then((user)=>{
-        if (user)  {
-            return res.status(200).send({userExist:true});
-        }  
-     })      
+    UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
+        if (user) {
+            return res.status(500).send({ userExist: true });
+        }
+    })
     const UserModelForSignUp = new UserModel.users({
-        name: req.body.name,
+        fName: req.body.fName,
+        lName: req.body.lName,
         phoneNumber: req.body.phoneNumber,
         email: req.body.email,
         roles: req.body.roles,
@@ -44,47 +46,54 @@ const UserModel = require('../db/db-model/user.model');
         });
 };
 
-loginUser = (req,res)=>{
-    if (!req.body.phoneNumber){
-        return res.status(400).send({error:"Phone Number required."})
-    }    
-    UserModel.users.findOne({phoneNumber:req.body.phoneNumber}).then((user)=>{
-        if (user)  {
-            return res.status(200).send({user});
-            }else{
-            return  res.status(200).send({ isUserRegisted: false})
+loginUser = (req, res) => {
+    if (!req.body.phoneNumber) {
+        return res.status(400).send({ error: "Phone Number required." })
+    }
+    UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
+        if (user) {
+            return res.status(200).send({ user });
+        } else {
+            return res.status(500).send({
+                isUserRegisted: false,
+                errorMessage: 'Mobile number you entered is not registered. Please sign up.'
+            })
         }
-        }).catch((error)=> {
+    }).catch((error) => {
         return res.status(500).send({
             message: { error }
         });
-        })     
+    })
 };
 
-verifyPasswordUser=(req,res)=>{
-    if (!req.body.phoneNumber){
-        return res.status(400).send({error:"Phone Number required."})
-    } 
+verifyPasswordUser = (req, res) => {
+    if (!req.body.phoneNumber) {
+        return res.status(400).send({ error: "Phone Number required." })
+    }
     var newUser = {};
     newUser.phoneNumber = req.body.phoneNumber;
     newUser.password = req.body.password;
     console.log(newUser);
     UserModel.users.findOne({ phoneNumber: newUser.phoneNumber })
-    .then(user => {
-      if (!user) {
-        res.send({isUserExist:false});
-      } else {
-        if (user.password == newUser.password) {
-          res.send({isUserExist:true,authenticated:true});
-        } else {
-          res.send({isUserExist:true,authenticated:false});
-        }
-      }
-    })
-    .catch(err => {
-      console.log("Error is ", err.message);
-      res.send({error:err});
-    });
+        .then(user => {
+            if (!user) {
+                res.send({ isUserExist: false });
+            } else {
+                if (user.password == newUser.password) {
+                    res.send({ isUserExist: true, authenticated: true });
+                } else {
+                    res.status(500).send({
+                        isUserExist: true,
+                        authenticated: false,
+                        errorMessage: 'Password you entered is incorrect. Please try again.'
+                    });
+                }
+            }
+        })
+        .catch(err => {
+            console.log("Error is ", err.message);
+            res.send({ error: err });
+        });
 }
 
 
