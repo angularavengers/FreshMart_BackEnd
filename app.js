@@ -3,10 +3,11 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+var common = require('./common');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users/users.routes');
 var db = require('./db/database');
+var config = common.config();
 
 var app = express();
 db.dbStart();
@@ -44,6 +45,9 @@ app.use(function(err, req, res, next) {
   // render the error page
   res.status(err.status || 500);
   res.render('error');
+});
+ app.listen(config.port, function () {
+  console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
 });
 
 module.exports = app;

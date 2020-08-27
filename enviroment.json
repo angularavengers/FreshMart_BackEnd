@@ -5,7 +5,8 @@
         "clientURL": "https://www.fast2sms.com/dev/bulk",
         "authToken":"y9F4vRPqYG0MJj7w3koe8mgLH5hQuUOrztfXDn6dVli1ECaWBco5I9TcMipw0xZ6ueY48navWKfVDhqr",
         "templateId": "34813"
-      }
+      },
+      "port":5000
   }, 
   "production": {
       "dbconfig": "Mongo URL PROD",
