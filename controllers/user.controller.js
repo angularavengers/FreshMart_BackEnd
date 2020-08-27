@@ -112,17 +112,17 @@ verifyPasswordUser=(req,res)=>{
     });
 }
 
-updateUserProfile=(req,res)=>{
-    userModel.findOneAndUpdate(
-        //     { _id: "5c4c6d0b9f7534365ca53f53"}, 
-        //     { $push: { surveyDetails: {
-        //                     suerveyId:00002,
-        //                     surveyQuestion:[
-        //                         {question:"Question changed",options:["HTML1","Javascript2","Angular2","Java"]}
-        //                 ]
-        //             }
-        //         } }
-}
+// updateUserProfile=(req,res)=>{
+//     userModel.findOneAndUpdate(
+//         //     { _id: "5c4c6d0b9f7534365ca53f53"}, 
+//         //     { $push: { surveyDetails: {
+//         //                     suerveyId:00002,
+//         //                     surveyQuestion:[
+//         //                         {question:"Question changed",options:["HTML1","Javascript2","Angular2","Java"]}
+//         //                 ]
+//         //             }
+//         //         } }
+//}
 
 
 module.exports = {
