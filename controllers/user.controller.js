@@ -17,19 +17,38 @@ findAll = (req, res) => {
 // Creat New User
 createUser = (req, res) => {
     validateField(req.body.phoneNumber);
-
     UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
         if (user) {
             return res.status(500).send({ userExist: true });
         }
-    })
+    });
+    /* Checking if token is already exist... */
+    verifyOTPUser(req.body.phoneNumber).then(token => {
+        console.log(token);
+        if (token._userId) {
+            saveNewUser(req,res,true,true);
+            //res.send({ OptVerified: true,isVerified:true });
+        } else {
+                res.status(500).send({
+                    isVerified: false,
+                    OptVerified: false,
+                    errorMessage: 'OTP expired.'
+                });
+            }
+        })
+    .catch(err => {
+        res.status(500).send({ error: "Please try after sometime, we are unable to sign up."});
+    });
+};
+
+saveNewUser=(req,res, OptVerified, isVerified)=>{
     const UserModelForSignUp = new UserModel.users({
         fName: req.body.fName,
         lName: req.body.lName,
         phoneNumber: req.body.phoneNumber,
         email: req.body.email,
         roles: req.body.roles,
-        isVerified: req.body.isVerified,
+        isVerified: isVerified,
         password: req.body.password,
         passwordResetToken: req.body.passwordResetToken,
         passwordResetExpires: req.body.passwordResetExpires
@@ -38,30 +57,38 @@ createUser = (req, res) => {
     // Save Note in the database
     UserModelForSignUp.save()
         .then(data => {
-            res.send(data);
+            console.log(data);
+            return res.status(200).send({data,OptVerified});
         }).catch(err => {
-            res.status(500).send({
+            return res.status(500).send({
                 message: err.message || "Some error occurred while creating the User."
             });
         });
-};
+}
 
 loginUser = (req, res) => {
     validateField(req.body.phoneNumber);
     UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
         if (user) {
-            return res.status(200).send({ user });
+            return res.status(200).send({ user,isUserRegisted: true });
         } else {
-            /* Token will expire in 1 min */
-            let token = getOtpForUser(); 
-            let tokenModel = new UserModel.toeken({ _userId: req.body.phoneNumber, 
-            token: token });
-            tokenModel.save().then((tokenId)=>{
-                getOneTimeOTP(tokenId._userId,tokenId.token).then((response) => {
-                    res.status(200).send({response, isUserRegisted: false});
-                 }).catch((error)=>{
-                    res.status(500).send({error:`Token is already sent to you if you don't got please try with resend OTP.`})
-                  })
+            /* Token will expire in 2 min */
+            verifyOTPUser(req.body.phoneNumber).then((token)=>{
+            if(token==null){
+                let token = getOtpForUser(); 
+                let tokenModel = new UserModel.token({ _userId: req.body.phoneNumber, 
+                token: token });
+                tokenModel.save().then((tokenId)=>{
+                      getOneTimeOTP(tokenId._userId,tokenId.token).then((response) => {
+                        res.status(200).send({response, isUserRegisted: false});
+                     }).catch((error)=>{
+                       res.status(500).send({error:`Token is already sent to you if you don't got please try with resend OTP.`})
+                    })
+            })
+           }else{
+            res.status(200).send({response: "Token is already sent to you please check or click on resent OTP.",
+             isUserRegisted: false});
+           } 
             }).catch((error)=>{
                 /* If already have OTP sent to record will not send other record. */
                 return res.status(500).send({error:'Unable to send OTP please try again.' + error})
@@ -81,12 +108,12 @@ verifyPasswordUser = (req, res) => {
     UserModel.users.findOne({ phoneNumber: newUser.phoneNumber })
         .then(user => {
             if (!user) {
-                res.send({ isUserExist: false });
+               return res.send({ isUserExist: false });
             } else {
                 if (user.password == newUser.password) {
-                    res.send({ isUserExist: true, authenticated: true });
+                    return res.send({ isUserExist: true, authenticated: true });
                 } else {
-                    res.status(500).send({
+                    return res.status(500).send({
                         isUserExist: true,
                         authenticated: false,
                         errorMessage: 'Password you entered is incorrect. Please try again.'
@@ -95,8 +122,7 @@ verifyPasswordUser = (req, res) => {
             }
         })
         .catch(err => {
-            console.log("Error is ", err.message);
-            res.send({ error: err });
+            return res.send({ error: err });
         });
 }
 
@@ -133,30 +159,8 @@ getOtpForUser=()=>{
 }
 
 //VerifyOTP...
-verifyPasswordUser = (req, res) => {
-    var newUser = {};
-    newUser.phoneNumber = req.body.phoneNumber;
-    newUser.password = req.body.password;
-    UserModel.users.findOne({ phoneNumber: newUser.phoneNumber })
-        .then(user => {
-            if (!user) {
-                res.send({ isUserExist: false });
-            } else {
-                if (user.password == newUser.password) {
-                    res.send({ isUserExist: true, authenticated: true });
-                } else {
-                    res.status(500).send({
-                        isUserExist: true,
-                        authenticated: false,
-                        errorMessage: 'Password you entered is incorrect. Please try again.'
-                    });
-                }
-            }
-        })
-        .catch(err => {
-            console.log("Error is ", err.message);
-            res.send({ error: err });
-        });
+verifyOTPUser = (phoneNumber) => {
+    return UserModel.token.findOne({ _userId: phoneNumber});
 }
 
 

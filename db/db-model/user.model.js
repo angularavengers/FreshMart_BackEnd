@@ -31,7 +31,7 @@ const tokenSchema = new mongoose.Schema({
     _userId: { type: String , required: true, unique: true,index: true
     },
     token: { type: String, required: true },
-    createdAt: { type: Date, required: true, default: Date.now, expires: 60}
+    createdAt: { type: Date, required: true, default: Date.now, expires: 150}
 },{strict: true});
 
 const UserSchemaT= mongoose.model('users',UserSchema);
@@ -40,7 +40,7 @@ const UserAdressT= mongoose.model('userAdress',UserAdress);
 
 module.exports = {
    users: UserSchemaT,
-   toeken: tokenSchemaT,
+   token: tokenSchemaT,
    usersAdress: UserAdressT
 }
 

@@ -23,8 +23,8 @@ router.post('/signup', function(req, res) {
 This method will verify user password
 */
 router.post('/verifyUser', function(req, res) {
-    //user.verifyUser(req, res);
-    user.getOTP(req,res);
+    user.verifyUser(req, res);
+    //user.getOTP(req,res);
 });
 /* This will user for ADD NEW DELIVEY ADDress for user */
 router.post('/edituserAdress', function(req, res) {
