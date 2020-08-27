@@ -46,8 +46,8 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error');
 });
- app.listen(config.port, function () {
-  console.log('Express server listening on %d, in %s mode', config.port, app.get('env'));
+ app.listen(process.env.port || config.port, function () {
+  console.log('Express server listening on %d, in %s mode', config.port || process.env.port, app.get('env'));
 });
 
 module.exports = app;
