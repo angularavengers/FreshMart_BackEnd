@@ -111,7 +111,7 @@ verifyPasswordUser = (req, res) => {
                return res.send({ isUserExist: false });
             } else {
                 if (user.password == newUser.password) {
-                    return res.send({ isUserExist: true, authenticated: true });
+                    return res.status(200).send({ isUserExist: true, authenticated: true });
                 } else {
                     return res.status(500).send({
                         isUserExist: true,
