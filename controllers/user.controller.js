@@ -1,7 +1,10 @@
 const UserModel = require('../db/db-model/user.model');
 const unirest = require('unirest');
 var common = require('../common');
+var bcrypt = require('bcrypt');
+var saltRounds = 10;
 var config = common.config();
+
 // Find All Users
 findAll = (req, res) => {
     UserModel.users.find()
@@ -42,28 +45,32 @@ createUser = (req, res) => {
 };
 
 saveNewUser=(req,res, OptVerified, isVerified)=>{
-    const UserModelForSignUp = new UserModel.users({
-        fName: req.body.fName,
-        lName: req.body.lName,
-        phoneNumber: req.body.phoneNumber,
-        email: req.body.email,
-        roles: req.body.roles,
-        isVerified: isVerified,
-        password: req.body.password,
-        passwordResetToken: req.body.passwordResetToken,
-        passwordResetExpires: req.body.passwordResetExpires
-    });
-
-    // Save Note in the database
-    UserModelForSignUp.save()
-        .then(data => {
-            console.log(data);
-            return res.status(200).send({data,OptVerified});
-        }).catch(err => {
-            return res.status(500).send({
-                message: err.message || "Some error occurred while creating the User."
-            });
+    console.log(req.body.password);
+    bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
+        // Now we can store the password hash in db.
+        const UserModelForSignUp = new UserModel.users({
+            fName: req.body.fName,
+            lName: req.body.lName,
+            phoneNumber: req.body.phoneNumber,
+            email: req.body.email,
+            roles: req.body.roles,
+            isVerified: isVerified,
+            password: hash,
+            passwordResetToken: req.body.passwordResetToken,
+            passwordResetExpires: req.body.passwordResetExpires
         });
+    
+        // Save Note in the database
+        UserModelForSignUp.save()
+            .then(data => {
+                return res.status(200).send({data,OptVerified});
+            }).catch(err => {
+                return res.status(500).send({
+                    message: err.message || "Some error occurred while creating the User."
+                });
+
+      });
+   });
 }
 
 loginUser = (req, res) => {
@@ -110,15 +117,18 @@ verifyPasswordUser = (req, res) => {
             if (!user) {
                return res.send({ isUserExist: false });
             } else {
-                if (user.password == newUser.password) {
+                // Load hash from the db, which was preivously stored 
+                bcrypt.compare(req.body.password, user.password, function(err, response) {
+                if (response == true){
                     return res.status(200).send({ isUserExist: true, authenticated: true });
-                } else {
+                }else{
                     return res.status(500).send({
                         isUserExist: true,
                         authenticated: false,
                         errorMessage: 'Password you entered is incorrect. Please try again.'
                     });
-                }
+                } 
+              });
             }
         })
         .catch(err => {
