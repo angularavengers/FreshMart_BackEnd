@@ -195,33 +195,37 @@ addUserAddress=(req,res)=>{
             },
             {new: true}  
             ).then((updatedrecord)=>{
-                if (req.body.isDefault=="true" || updatedrecord.address.length==0){
-                    UserModel.usersAdress.findOneAndUpdate({
-                        _userId: updatedrecord.phoneNumber},
-                        {$set:{"defaultAdressId":updatedrecord.address[updatedrecord.address.length-1]._id}},
-                    {new:true})
-                     .then((defaultAdress)=>{
-                        /* if no record in DB */ 
-                        if(defaultAdress==null){
-                            setDefaultAddress = new UserModel.usersAdress({
-                                _userId: updatedrecord.phoneNumber,
-                                defaultAdressId: updatedrecord.address[updatedrecord.address[updatedrecord.address.length-1]._id] 
-                            })
-                            setDefaultAddress.save().then((updatedItem)=>{
-                                return res.status(200).send({updatedItem,updatedrecord})
-                            }).catch((err)=>{
-                                return res.status(500).send(err);
-                            })
-                        }
-                        return res.send({updatedrecord: updatedrecord, 
-                        defaultAdressId: defaultAdress });
-                      }).catch((err)=>{
-                        return res.status(500).send({err});
-                      });
-                }else{
-                    return res.send({ updatedrecord });
-                }
-
+                /* if only first record setting that as a default record*/
+                if(updatedrecord.address.length==1){
+                    console.log("inside adress");
+                        setDefaultAddress = new UserModel.usersAdress({
+                            _userId: updatedrecord.phoneNumber,
+                            defaultAdressId: updatedrecord.address[updatedrecord.address.length-1]._id 
+                        })
+                        setDefaultAddress.save().then((updatedItem)=>{
+                            return res.status(200).send({updatedItem,updatedrecord})
+                        }).catch((err)=>{
+                            return res.status(500).send(err);
+                        })
+                    }
+                else{
+                    if (req.body.isDefault=="true"){
+                        console.log("inside adress method");
+                        UserModel.usersAdress.findOneAndUpdate({
+                            _userId: updatedrecord.phoneNumber},
+                            {$set:{"defaultAdressId":updatedrecord.address[updatedrecord.address.length-1]._id}},
+                        {new:true})
+                         .then((defaultAdress)=>{
+                            return res.send({updatedrecord: updatedrecord, 
+                            defaultAdressId: defaultAdress });
+                          }).catch((err)=>{
+                            return res.status(500).send({err});
+                          });
+                    }else{
+                        console.log("inside result");
+                        return res.send({ updatedrecord });
+                    }
+                }  
             }).catch((err)=>{
               return res.status(500).send({err});
             })
@@ -243,12 +247,15 @@ updateUserAddress = (req,res)=>{
         "address.$.state": req.body.state,
         "address.$.pincode": req.body.pincode,
         "address.$.phoneNumber": req.body.phoneNumber
-    }},{new: true, upsert:true}).then((updatedrecord)=>{
+    }},{new: true}).then((updatedrecord)=>{
         if (req.body.isDefault=="true"){
+            console.log(updatedrecord.phoneNumber,req.body.addressId);
                 UserModel.usersAdress.findOneAndUpdate({
                     _userId: updatedrecord.phoneNumber
                 },
-                {$set:{"defaultAdressId":req.body.addressId}})
+                {$set:{"defaultAdressId":ObjectId(req.body.addressId)}},
+                {new:true}
+                )
                  .then((defaultAdress)=>{
                           return res.send({updatedrecord: updatedrecord, defaultAddressId: defaultAdress });
                   }).catch((err)=>{
