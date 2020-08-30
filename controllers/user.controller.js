@@ -4,6 +4,8 @@ var common = require('../common');
 var bcrypt = require('bcrypt');
 var saltRounds = 10;
 var config = common.config();
+var ObjectId = require('mongodb').ObjectID;
+
 
 // Find All Users
 findAll = (req, res) => {
@@ -45,7 +47,6 @@ createUser = (req, res) => {
 };
 
 saveNewUser=(req,res, OptVerified, isVerified)=>{
-    console.log(req.body.password);
     bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
         // Now we can store the password hash in db.
         const UserModelForSignUp = new UserModel.users({
@@ -138,7 +139,7 @@ verifyPasswordUser = (req, res) => {
 
 validateField=(fieldName)=>{
     if (!fieldName) {
-        return res.status(400).send({ error: "Phone Number required." })
+        return res.status(400).send({ error:  fieldName + "is required." })
     }
 }
 
@@ -175,28 +176,45 @@ verifyOTPUser = (phoneNumber) => {
 
 
 
-updateUserAdress=(req,res)=>{
+addUserAddress=(req,res)=>{
     validateField(req.body.phoneNumber);
     UserModel.users.findOneAndUpdate(
             { phoneNumber: req.body.phoneNumber}, 
-            { $push: {  adress:{
-                         AdressLine1:"sourabh",
-                         Adess_Line2 : "Nehru Nagar",
-                         LandMark:"Oyo hotel bhopal",
-                         City:"Bhopal",
-                         State:"Madhya Predesh",
-                         PinCode: 462016  
+            { $push: {  address:{
+                        firstName: req.body.firstName,
+                        lastName: req.body.lastName,
+                        addressLine1: req.body.addressLine1,
+                        addressLine2: req.body.addressLine2,
+                        landMark:req.body.landMark,
+                        city: req.body.city,
+                        state: req.body.state,
+                        pincode: req.body.pincode,
+                        phoneNumber:req.body.phoneNumber
                     }
                 },
             },
             {new: true}  
             ).then((updatedrecord)=>{
-                if(req.body.isdefault){
-                    var setDefaultAdressForUser = new UserModel.usersAdress
-                    ({ _userId: updatedrecord._id, defaultAdressId:updatedrecord.adress[updatedrecord.adress.length-1]._id});
-                     setDefaultAdressForUser.save()
+                if (req.body.isDefault=="true" || updatedrecord.address.length==0){
+                    UserModel.usersAdress.findOneAndUpdate({
+                        _userId: updatedrecord.phoneNumber},
+                        {$set:{"defaultAdressId":updatedrecord.address[updatedrecord.address.length-1]._id}},
+                    {new:true})
                      .then((defaultAdress)=>{
-                              return res.send({updatedrecord: updatedrecord, defaultAdressId: defaultAdress });
+                        /* if no record in DB */ 
+                        if(defaultAdress==null){
+                            setDefaultAddress = new UserModel.usersAdress({
+                                _userId: updatedrecord.phoneNumber,
+                                defaultAdressId: updatedrecord.address[updatedrecord.address[updatedrecord.address.length-1]._id] 
+                            })
+                            setDefaultAddress.save().then((updatedItem)=>{
+                                return res.status(200).send({updatedItem,updatedrecord})
+                            }).catch((err)=>{
+                                return res.status(500).send(err);
+                            })
+                        }
+                        return res.send({updatedrecord: updatedrecord, 
+                        defaultAdressId: defaultAdress });
                       }).catch((err)=>{
                         return res.status(500).send({err});
                       });
@@ -208,6 +226,43 @@ updateUserAdress=(req,res)=>{
               return res.status(500).send({err});
             })
 };
+
+updateUserAddress = (req,res)=>{
+    validateField(req.body.phoneNumber);
+    validateField(req.body.addressId);
+    UserModel.users.findOneAndUpdate(
+       { phoneNumber: req.body.phoneNumber,
+        "address._id": req.body.addressId},
+        {$set: {
+        "address.$.firstName": req.body.firstName, 
+        "address.$.lastName": req.body.lastName,
+        "address.$.addressLine1": req.body.addressLine1,
+        "address.$.addressLine2": req.body.addressLine2,
+        "address.$.landMark": req.body.landMark,
+        "address.$.city": req.body.city,
+        "address.$.state": req.body.state,
+        "address.$.pincode": req.body.pincode,
+        "address.$.phoneNumber": req.body.phoneNumber
+    }},{new: true, upsert:true}).then((updatedrecord)=>{
+        if (req.body.isDefault=="true"){
+                UserModel.usersAdress.findOneAndUpdate({
+                    _userId: updatedrecord.phoneNumber
+                },
+                {$set:{"defaultAdressId":req.body.addressId}})
+                 .then((defaultAdress)=>{
+                          return res.send({updatedrecord: updatedrecord, defaultAddressId: defaultAdress });
+                  }).catch((err)=>{
+                    return res.status(500).send({err});
+                  });
+            }else{
+                return res.send({ updatedrecord });
+            }
+
+        }).catch((err)=>{
+          return res.status(500).send({err});
+        })
+     
+}
 
 /* Todo -- Sourabh Will update this when we have UI */
 // updateUserProfile=(req,res)=>{
@@ -231,6 +286,7 @@ module.exports = {
     login: loginUser,
     signUp: createUser,
     verifyUser: verifyPasswordUser,
-    edituserAdress:updateUserAdress,
+    addUserAddress:addUserAddress,
+    updateUserAddress: updateUserAddress
     //edituserProfile:updateUserProfle 
 }

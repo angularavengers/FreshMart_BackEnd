@@ -9,21 +9,24 @@ var UserSchema = new mongoose.Schema({
     email: { type: String, unique: true,require:true},
     roles: [{ type: 'String' }],
     isVerified: { type: Boolean, default: false },
-    adress:[{
-        AdressLine1:String ,
-		    Adess_Line2 : String,
-		    LandMark:String,
-		    City:String,
-		    State:String,
-        PinCode:String ,
-        isdefault:Boolean
+    address:[{
+      firstName: String,
+      lastName: String,
+      addressLine1: String,
+      addressLine2: String,
+      landMark:String,
+      city: String,
+      state: String,
+      pincode: String,
+      phoneNumber:String,
+      isDefault: Boolean
      }],
     password: String,
     passwordResetToken: String,
     passwordResetExpires: Date
   })
-var UserAdress = new mongoose.Schema({
-  _userId: { type: mongoose.Schema.Types.ObjectId, required: true, ref: 'users' },
+var UserAddress = new mongoose.Schema({
+  _userId: { type: String, required: true, ref: 'users' },
   defaultAdressId: {type: mongoose.Schema.Types.ObjectId},
 });  
 
@@ -36,7 +39,7 @@ const tokenSchema = new mongoose.Schema({
 
 const UserSchemaT= mongoose.model('users',UserSchema);
 const tokenSchemaT= mongoose.model('tokens',tokenSchema);
-const UserAdressT= mongoose.model('userAdress',UserAdress);
+const UserAdressT= mongoose.model('UserAddress',UserAddress);
 
 module.exports = {
    users: UserSchemaT,

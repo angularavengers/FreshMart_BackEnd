@@ -27,12 +27,12 @@ router.post('/verifyUser', function(req, res) {
     //user.getOTP(req,res);
 });
 /* This will user for ADD NEW DELIVEY ADDress for user */
-router.post('/edituserAdress', function(req, res) {
-    user.editProfile(req, res);
+router.post('/addUserAddress', function(req, res) {
+    user.addUserAddress(req, res);
 });
 /* TODO */
-router.post('/edituserProfile', function(req, res) {
-    user.edituserProfile(req, res);
+router.post('/updateUserAddress', function(req, res) {
+    user.updateUserAddress(req, res);
 });
 
 
