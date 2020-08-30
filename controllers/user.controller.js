@@ -188,7 +188,7 @@ addUserAddress=(req,res)=>{
                         city: req.body.city,
                         state: req.body.state,
                         pincode: req.body.pincode,
-                        phoneNumber:req.body.phoneNumber
+                        phoneNumber:req.body.delPhoneNumber
                     }
                 },
             },
@@ -242,7 +242,7 @@ updateUserAddress = (req,res)=>{
         "address.$.city": req.body.city,
         "address.$.state": req.body.state,
         "address.$.pincode": req.body.pincode,
-        "address.$.phoneNumber": req.body.phoneNumber
+        "address.$.phoneNumber": req.body.delPhoneNumber
     }},{new: true}).then((updatedrecord)=>{
         if (req.body.isDefault=="true"){
                 UserModel.usersAdress.findOneAndUpdate({
