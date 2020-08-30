@@ -18,7 +18,7 @@ var UserSchema = new mongoose.Schema({
       city: String,
       state: String,
       pincode: String,
-      phoneNumber:String,
+      delPhoneNumber:String,
       isDefault: Boolean
      }],
     password: String,

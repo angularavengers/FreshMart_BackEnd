@@ -14,7 +14,7 @@ findAll = (req, res) => {
             res.send(users);
         }).catch(err => {
             res.status(500).send({
-                message: err.message || "Some error occurred while retrieving notes."
+                message: err.message || "Some error occurred while retrieving Users."
             });
         });
 };
@@ -188,7 +188,7 @@ addUserAddress=(req,res)=>{
                         city: req.body.city,
                         state: req.body.state,
                         pincode: req.body.pincode,
-                        phoneNumber:req.body.delPhoneNumber
+                        delPhoneNumber:req.body.delPhoneNumber
                     }
                 },
             },
@@ -242,7 +242,7 @@ updateUserAddress = (req,res)=>{
         "address.$.city": req.body.city,
         "address.$.state": req.body.state,
         "address.$.pincode": req.body.pincode,
-        "address.$.phoneNumber": req.body.delPhoneNumber
+        "address.$.delPhoneNumber": req.body.delPhoneNumber
     }},{new: true}).then((updatedrecord)=>{
         if (req.body.isDefault=="true"){
                 UserModel.usersAdress.findOneAndUpdate({
