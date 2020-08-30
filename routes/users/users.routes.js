@@ -35,5 +35,13 @@ router.post('/updateUserAddress', function(req, res) {
     user.updateUserAddress(req, res);
 });
 
+router.post('/addItemToCart', function(req, res) {
+    user.addItemToUserCart(req, res);
+});
+router.post('/removeItemFromCard', function(req, res) {
+    user.removeItemFromCard(req, res);
+});
+
+
 
 module.exports = router;

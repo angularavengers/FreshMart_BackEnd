@@ -266,21 +266,34 @@ updateUserAddress = (req,res)=>{
      
 }
 
-/* Todo -- Sourabh Will update this when we have UI */
-// updateUserProfile=(req,res)=>{
-//     validateField(req.body.phoneNumber);
-//     updatedUserProfile ={};
-//     if(req.body.)
-//     UserModel.users.findOneAndUpdate(
-//             { phoneNumber: req.body.phoneNumber}, 
-//             {$set:},
-//             {new: true}  
-//             ).then((updatedProfile)=>{
-//                 return res.status(200).send({updatedProfile});      
-//             }).catch((err)=>{
-//               return res.status(500).send({err});
-//             })
-// };  
+addItemToUserCart = (req, res) => {
+    UserModel.users.findOneAndUpdate(
+        { phoneNumber: req.body.phoneNumber },
+        {
+            $push: {
+                itemInCart: {
+                    _id: ObjectId(req.body.productItemId),
+                    itemQuantity: req.body.itemQuantity
+                }
+            }
+        }, { new: true })
+        .then((updatedCart) => {
+            res.status(200).send({ updatedCart });
+        }).catch((err) => {
+            res.status(500).send({ errorMessage: err });
+        })
+}
+
+removeItemFromCard =(req,res)=>{
+    UserModel.users.findOneAndUpdate(
+     { "phoneNumber": req.body.phoneNumber},
+    { $pull: { "itemInCart" : { _id:  req.body.productItemId} }},{new:true})
+    .then((updatedCarts)=>{
+        return res.status(200).send({data:updatedCarts});
+    }).catch((err)=>{
+        return res.status(200).send({data:updatedCarts})
+    });
+}
 
 
 module.exports = {
@@ -289,6 +302,8 @@ module.exports = {
     signUp: createUser,
     verifyUser: verifyPasswordUser,
     addUserAddress:addUserAddress,
-    updateUserAddress: updateUserAddress
+    updateUserAddress: updateUserAddress,
+    addItemToUserCart:addItemToUserCart,
+    removeItemFromCard: removeItemFromCard
     //edituserProfile:updateUserProfle 
 }

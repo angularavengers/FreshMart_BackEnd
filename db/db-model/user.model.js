@@ -21,6 +21,9 @@ var UserSchema = new mongoose.Schema({
       delPhoneNumber:String,
       isDefault: Boolean
      }],
+     itemInCart: [{
+      itemQuantity: Number 
+    }],
     password: String,
     passwordResetToken: String,
     passwordResetExpires: Date
