@@ -29,7 +29,6 @@ createUser = (req, res) => {
     });
     /* Checking if token is already exist... */
     verifyOTPUser(req.body.phoneNumber).then(token => {
-        console.log(token);
         if (token._userId) {
             saveNewUser(req,res,true,true);
             //res.send({ OptVerified: true,isVerified:true });
@@ -197,7 +196,6 @@ addUserAddress=(req,res)=>{
             ).then((updatedrecord)=>{
                 /* if only first record setting that as a default record*/
                 if(updatedrecord.address.length==1){
-                    console.log("inside adress");
                         setDefaultAddress = new UserModel.usersAdress({
                             _userId: updatedrecord.phoneNumber,
                             defaultAdressId: updatedrecord.address[updatedrecord.address.length-1]._id 
@@ -210,7 +208,6 @@ addUserAddress=(req,res)=>{
                     }
                 else{
                     if (req.body.isDefault=="true"){
-                        console.log("inside adress method");
                         UserModel.usersAdress.findOneAndUpdate({
                             _userId: updatedrecord.phoneNumber},
                             {$set:{"defaultAdressId":updatedrecord.address[updatedrecord.address.length-1]._id}},
@@ -222,7 +219,6 @@ addUserAddress=(req,res)=>{
                             return res.status(500).send({err});
                           });
                     }else{
-                        console.log("inside result");
                         return res.send({ updatedrecord });
                     }
                 }  
@@ -249,7 +245,6 @@ updateUserAddress = (req,res)=>{
         "address.$.phoneNumber": req.body.phoneNumber
     }},{new: true}).then((updatedrecord)=>{
         if (req.body.isDefault=="true"){
-            console.log(updatedrecord.phoneNumber,req.body.addressId);
                 UserModel.usersAdress.findOneAndUpdate({
                     _userId: updatedrecord.phoneNumber
                 },
