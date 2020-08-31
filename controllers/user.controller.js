@@ -77,7 +77,7 @@ loginUser = (req, res) => {
     validateField(req.body.phoneNumber);
     UserModel.users.findOne({ phoneNumber: req.body.phoneNumber }).then((user) => {
         if (user) {
-            return res.status(200).send({ user,isUserRegisted: true });
+            return res.status(200).send({ isVerified: user.isVerified,isUserRegisted: true });
         } else {
             /* Token will expire in 2 min */
             verifyOTPUser(req.body.phoneNumber).then((token)=>{
@@ -123,11 +123,12 @@ verifyPasswordUser = (req, res) => {
                     /* getting data for cart */
                     if (user.itemInCart.length){
                         ProductModel.find({_id:{$in:user.itemInCart}}).then((responseId)=>{
-                            res.status(200).send({ isUserExist: true, authenticated: true,cartItems:responseId  });
+                            res.status(200).send({authenticated: true,
+                                cartItems:responseId,user});
                         })
                     }else{
                         /* will also get data for order here..*/
-                    return res.status(200).send({ isUserExist: true, authenticated: true });
+                    return res.status(200).send({ isUserExist: true, authenticated: true, user});
                     }
                     
                 }else{
