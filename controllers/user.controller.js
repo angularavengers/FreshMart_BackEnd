@@ -124,7 +124,7 @@ verifyPasswordUser = (req, res) => {
                     if (user.itemInCart.length){
                         ProductModel.find({_id:{$in:user.itemInCart}}).then((responseId)=>{
                             res.status(200).send({authenticated: true,
-                                cartItems:responseId,user});
+                                cartItems:responseId, user});
                         })
                     }else{
                         /* will also get data for order here..*/
@@ -278,18 +278,31 @@ updateUserAddress = (req,res)=>{
 
 addItemToUserCart = (req, res) => {
     UserModel.users.findOneAndUpdate(
-        { phoneNumber: req.body.phoneNumber },
+        { phoneNumber: req.body.phoneNumber , "itemInCart._id":ObjectId(req.body.productItemId)},
         {
-            $push: {
-                itemInCart: {
-                    _id: ObjectId(req.body.productItemId),
-                    itemQuantity: req.body.itemQuantity
+            $set: {
+                "itemInCart.$.itemQuantity": req.body.itemQuantity
                 }
-            }
         }, { new: true })
         .then((updatedCart) => {
-            res.status(200).send({ updatedCart });
-        }).catch((err) => {
+            if(updatedCart==null){
+                UserModel.users.findOneAndUpdate(
+                    { phoneNumber: req.body.phoneNumber},
+                    {
+                         $push: {
+                            itemInCart: {
+                                _id: ObjectId(req.body.productItemId),
+                                itemQuantity: req.body.itemQuantity
+                            }
+                        }}, { new: true} ).then((updatedCartItem)=>{
+                        res.status(200).send({updatedCart: updatedCartItem });
+                    }).catch((err)=>{
+                        res.status(500).send({ errorMessage: err });
+                    })                    
+            }else{
+                res.status(200).send({ updatedCart })
+            }
+         }).catch((err) => {
             res.status(500).send({ errorMessage: err });
         })
 }
