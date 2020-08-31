@@ -14,7 +14,7 @@ var app = express();
 db.dbStart();
 
 app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+//app.set('view engine', 'jade');
 
 /* sourabh --Adding CQRS need to remove once testing done.. */
 app.use((req, res, next)=> {

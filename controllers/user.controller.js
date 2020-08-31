@@ -5,7 +5,7 @@ var bcrypt = require('bcrypt');
 var saltRounds = 10;
 var config = common.config();
 var ObjectId = require('mongodb').ObjectID;
-
+const ProductModel = require('../db/db-model/product.model');
 
 // Find All Users
 findAll = (req, res) => {
@@ -120,7 +120,16 @@ verifyPasswordUser = (req, res) => {
                 // Load hash from the db, which was preivously stored 
                 bcrypt.compare(req.body.password, user.password, function(err, response) {
                 if (response == true){
+                    /* getting data for cart */
+                    if (user.itemInCart.length){
+                        ProductModel.find({_id:{$in:user.itemInCart}}).then((responseId)=>{
+                            res.status(200).send({ isUserExist: true, authenticated: true,cartItems:responseId  });
+                        })
+                    }else{
+                        /* will also get data for order here..*/
                     return res.status(200).send({ isUserExist: true, authenticated: true });
+                    }
+                    
                 }else{
                     return res.status(500).send({
                         isUserExist: true,
@@ -283,7 +292,6 @@ addItemToUserCart = (req, res) => {
             res.status(500).send({ errorMessage: err });
         })
 }
-
 removeItemFromCard =(req,res)=>{
     UserModel.users.findOneAndUpdate(
      { "phoneNumber": req.body.phoneNumber},
@@ -295,7 +303,6 @@ removeItemFromCard =(req,res)=>{
     });
 }
 
-
 module.exports = {
     findAllUser: findAll,
     login: loginUser,
@@ -304,6 +311,6 @@ module.exports = {
     addUserAddress:addUserAddress,
     updateUserAddress: updateUserAddress,
     addItemToUserCart:addItemToUserCart,
-    removeItemFromCard: removeItemFromCard
-    //edituserProfile:updateUserProfle 
+    removeItemFromCard: removeItemFromCard,
+     
 }
