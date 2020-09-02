@@ -1,5 +1,5 @@
 var express = require('express');
-var router = express.Router();
+var router = express.Router(); 
 const Product = require('../../controllers/product.controller');
 
 /* To get all record  */
